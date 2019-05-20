@@ -103,13 +103,6 @@ inherit:
   file: options-shared.yaml
 ---
 program: mongorestore
-name: sslFIPSMode
-inherit:
-  name: sslFIPSMode
-  program: _shared
-  file: options-shared.yaml
----
-program: mongorestore
 name: username
 inherit:
   name: username
@@ -164,6 +157,12 @@ inherit:
   name: writeConcern
   program: _shared
   file: options-shared.yaml
+post: |
+
+   If the write concern is also included in the :option:`--uri
+   connection string <--uri>`, the command-line
+   {{role}} overrides the write concern specified in
+   the URI string.
 ---
 program: mongorestore
 name: db
@@ -182,6 +181,11 @@ description: |
   {{program}} restores. You must use the
   {{program}} :ref:`path option <mongorestore-path-option>` to
   limit that restored data.
+  
+  .. note::
+   
+      You cannot specify both {{role}} and :option:`--uri`.
+ 
 optional: true
 ---
 program: mongorestore

@@ -593,6 +593,8 @@ Compression Options
 
           - :term:`zlib` (Available in MongoDB 3.6 or greater)
 
+          - :term:`zstd` (Available in MongoDB 4.2 or greater)
+
           If you specify multiple compressors, then the order in which you list
           the compressors matter as well as the communication initiator. For
           example, if the client specifies the following network
@@ -708,11 +710,23 @@ connecting to the MongoDB deployment.
 Write Concern Options
 ~~~~~~~~~~~~~~~~~~~~~
 
-:ref:`Write concern <write-concern>` describes the kind of assurances
-that the :binary:`~bin.mongod` and the driver provide to the application
-regarding the success and durability of the write operation. For a
-full explanation of write concern and write operations in general, see
-:doc:`/reference/write-concern`.
+:ref:`Write concern <write-concern>` describes the level of
+acknowledgment requested from MongoDB. The write concern option is
+supported by the:
+
+- MongoDB drivers
+
+- :binary:`~bin.mongo` shell
+
+- :binary:`~bin.mongofiles`
+
+- :binary:`~bin.mongoimport`
+
+- :binary:`~bin.mongorestore`
+
+For more information on write
+concerns, see :doc:`/reference/write-concern`.
+
 
 .. note::
 

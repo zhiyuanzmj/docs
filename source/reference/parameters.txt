@@ -765,9 +765,13 @@ General Parameters
 
    *Default*: 500
 
-   Limits the amount of memory that simultaneous foreground index
+   Limits the amount of memory that simultaneous index
    builds on one collection may consume for the duration of the
    builds.
+
+   The memory consumed by an index build is separate from the
+   WiredTiger cache memory (see
+   :setting:`~storage.wiredTiger.engineConfig.cacheSizeGB`).
 
    .. include:: /includes/fact-index-build-memory-limit.rst
 
@@ -1599,31 +1603,38 @@ Replication Parameters
    other than :method:`rs.stepDown()` (or the
    :dbcommand:`replSetStepDown` command without the ``force: true``).
 
+.. parameter:: replBatchLimitBytes
+
+   *Default*: 104857600 (100MB)
+
+   Sets the maximum oplog application batch size in bytes.
+
+   Values can range from 16777216 (16MB) to 104857600 (100MB) inclusive.
+
+   The following example sets :parameter:`replBatchLimitBytes`
+   to 64 MB so that the rollback files are not created:
+
+   .. code-block:: javascript
+
+      mongod --setParameter replBatchLimitBytes=67108864
+
+   During runtime, you can also set the parameter with the
+   :dbcommand:`setParameter` command:
+
+   .. code-block:: sh
+
+      db.adminCommand( { setParameter: 1, replBatchLimitBytes: 64 * 1024 * 1024 } )
+
+   .. versionadded:: 4.0.10
+
 Sharding Parameters
 ~~~~~~~~~~~~~~~~~~~
 
-.. parameter:: AsyncRequestsSenderUseBaton
+.. note::
 
-   Type: boolean
-
-   Default: true
-
-   A flag that enables performance optimization on Linux for
-   scatter/gather operations on :binary:`~bin.mongos` when using a
-   single :parameter:`Task Executor connection pool
-   <taskExecutorPoolSize>`.
-
-   .. seealso:: :parameter:`taskExecutorPoolSize`
-
-   .. versionadded:: 4.0
-
-.. parameter:: recoverShardingState
-
-   |mongod-only|
-
-   Specify a boolean to check or ignore sharding state recovery
-   information. Default is ``true`` to check the sharding state
-   recovery information.
+   Starting in version 4.2, MongoDB removes the parameter
+   ``AsyncRequestsSenderUseBaton`` and always enables the performance
+   enhancement controlled by the parameter.
 
 .. parameter:: replMonitorMaxFailedChecks
 
@@ -1859,9 +1870,17 @@ Sharding Parameters
      Executor connection pools is 64.
 
    Starting in MongoDB 4.0, the default value of
-   :parameter:`taskExecutorPoolSize` is ``1``. For the previous
-   behavior, set :parameter:`taskExecutorPoolSize` to 0 and, on Linux,
-   set :parameter:`AsyncRequestsSenderUseBaton` to ``false``.
+   :parameter:`taskExecutorPoolSize` is ``1``:
+   
+   - In MongoDB 4.0 deployment, you can set
+     :parameter:`taskExecutorPoolSize` to ``0`` and, on Linux, set
+     :v4.0:`AsyncRequestsSenderUseBaton
+     </reference/parameters/#param.AsyncRequestsSenderUseBaton>` to
+     ``false`` for the previous behavior.
+
+   - In MongoDB 4.2+ deployment, MongoDB removes the
+     ``AsyncRequestsSenderUseBaton`` parameter and always enables the
+     performance enhancement controlled by the parameter.
 
    You can only set this parameter during start-up and cannot change
    this setting using the :dbcommand:`setParameter` database command.

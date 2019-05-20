@@ -438,7 +438,7 @@ Wildcard Index Limitations
   - :query:`{ $ne: { \<object\> } } <$ne>`
   - :query:`{ $ne: null } <$ne>` (for queries on field paths that include arrays)
 
-- You cannot shard a collection using a wildcard index.
+- You cannot shard a collection using a wildcard index as the shard key.
 
 - For queries that specify multiple fields covered by a wildcard index,
   the wildcard index can support at most *one* of the fields in the
@@ -454,6 +454,52 @@ Wildcard Index Limitations
   - The sort field is included in the wildcard index, *and*
   - The sort field was also included in the query predicate, *and*
   - The query planner selected the sort field for satisfying the query.
+
+Platform Support
+----------------
+
+- MongoDB 4.2 (Community & Enterprise) adds support for:
+
+  - Ubuntu 18.04 on ARM64.
+
+- MongoDB 4.2 (Community & Enterprise) removes support for:
+
+  - Ubuntu 14.04.
+  
+  - macOS 10.11.
+  
+See :ref:`mongodb-supported-platforms`.
+
+MongoDB Tools
+-------------
+
+FIPS Mode
+~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-fips.rst
+
+``--uri`` Option
+~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, 
+
+- For the following command-line tools, if the write concern is
+  specified in both the ``--uri`` connection string and the
+  ``--writeConcern`` option, the ``--writeConcern`` option overrides
+  the one in the connection string:
+
+  - :binary:`~bin.mongofiles`
+  - :binary:`~bin.mongoimport`
+  - :binary:`~bin.mongorestore`
+
+- For the following command-line tools, if the read preference is
+  specified in both the ``--uri`` connection string and the
+  ``--readPreference`` option, the ``--readPreference`` option
+  overrides the one in the connection string:
+
+  - :binary:`~bin.mongodump`
+  - :binary:`~bin.mongoexport` 
+  - :binary:`~bin.mongofiles`
 
 General Improvements
 --------------------
@@ -726,17 +772,27 @@ Logging
   - :serverstatus:`transactions.oldestActiveOplogEntryTimestamp`
   - :serverstatus:`transactions.oldestOpenUnpreparedReadTimestamp`
 
-Network Compression
-~~~~~~~~~~~~~~~~~~~
+``zstd`` Availability
+~~~~~~~~~~~~~~~~~~~~~
 
-Starting in version 4.2, the network compressors for
-:binary:`~bin.mongod` and :binary:`~bin.mongos` default to both
-``snappy,zlib`` compressors, in that order. In version 4.0,
-:binary:`~bin.mongod` and :binary:`~bin.mongos` enable network
-compression by default with ``snappy`` as the compressor.
+Starting in version 4.2, MongoDB supports :term:`zstd` for:
 
-For more information on network compression, see
-:setting:`net.compression.compressors`.
+- block compression. See
+  :setting:`storage.wiredTiger.collectionConfig.blockCompressor`.
+  
+- journal compression. See
+  :setting:`storage.wiredTiger.engineConfig.journalCompressor`.
+
+- network compression. See :setting:`net.compression.compressors`.
+
+  - For clients using the MongoDB drivers, they must use drivers
+    updated for MongoDB 4.2.
+
+  - The network compressors for :binary:`~bin.mongod` and
+    :binary:`~bin.mongos` default to both ``snappy,zstd,zlib``
+    compressors, in that order. In version 4.0, :binary:`~bin.mongod`
+    and :binary:`~bin.mongos` enable network compression by default
+    with ``snappy`` as the compressor.
 
 .. _4.2-query-plans:
 
@@ -816,6 +872,24 @@ For details, see:
 - :data:`collStats.indexBuilds`
 - :data:`collStats.totalIndexSize`
 - :data:`collStats.indexSizes`
+
+New Parameters
+~~~~~~~~~~~~~~
+
+MongoDB 4.2 adds the parameter :parameter:`replBatchLimitBytes` to
+configure the maximum oplog application batch size. The parameter is
+also available starting in MongoDB 4.0.10.
+
+Retryable Writes on Certain Single-Document Upserts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 will retry certain single-document upserts
+(update with ``upsert: true`` and ``multi: false``) that encounter a 
+duplicate key exception. See :ref:`retryable-update-upsert` for 
+conditions.
+
+Prior to MongoDB 4.2, MongoDB would not retry upsert operations
+that encountered a duplicate key error.
 
 Changes Affecting Compatibility
 -------------------------------

@@ -107,10 +107,21 @@ inherit:
 ---
 program: mongod
 name: port
-inherit:
-  name: port
-  program: _shared
-  file: options-shared.yaml
+args: <port>
+
+directive: option
+description: |
+
+   *Default*:
+
+   - 27017 if :binary:`~bin.mongod` is not a shard member or a config server member
+   - 27018 if :binary:`~bin.mongod` is a :option:`shard member <mongod --shardsvr>`
+   - 27019 if :binary:`~bin.mongod` is a :option:`config server member <mongod --configsvr>`
+
+   The TCP port on which the MongoDB instance listens for
+   client connections.
+   
+optional: true
 ---
 program: mongod
 name: bind_ip
@@ -155,20 +166,29 @@ description: |
   .. include:: /includes/tip-hostnames.rst
 
   .. include:: /includes/warning-bind-ip-security-considerations.rst
+  
+  For more information about IP Binding, refer to the
+  :doc:`/core/security-mongodb-configuration` documentation.
+
 replacement:
   ipv6: ":option:`--ipv6`"
 optional: true
 post: |
   To bind to all IPv4 addresses, enter ``0.0.0.0``.
 
-  To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0``
-  or alternatively, use the :setting:`net.bindIpAll` setting.
+  To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0`` or
+  starting in MongoDB 4.2, an asterisk ``"*"`` (enclose the asterisk in
+  quotes to avoid filename pattern expansion). Alternatively, use the
+  :setting:`net.bindIpAll` setting.
 
   .. note::
 
-     ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive.
-     Specifying both options causes {{program}} to throw an error and
-     terminate.
+     - ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive.
+       Specifying both options causes {{program}} to throw an error and
+       terminate.
+
+     - The command-line option ``--bind`` overrides the configuration
+       file setting :setting:`net.bindIp`.
 
 ---
 program: mongod
@@ -186,13 +206,17 @@ description: |
 
   {{program}} only supports IPv6 if started with {{ipv6}}. Specifying
   {{role}} alone does not enable IPv6 support.
-
+  
   .. include:: /includes/warning-bind-ip-security-considerations.rst
+  
+  For more information about IP Binding, refer to the
+  :doc:`/core/security-mongodb-configuration` documentation.
 
 post: |
 
-  Alternatively, you can set the ``--bind_ip`` option to
-  ``::,0.0.0.0`` to bind to all IP addresses.
+  Alternatively, you can set the ``--bind_ip`` option to ``::,0.0.0.0``
+  or, starting in MongoDB 4.2, to an asterisk ``"*"`` (enclose the
+  asterisk in quotes to avoid filename pattern expansion).
 
   .. note::
 
@@ -2384,16 +2408,17 @@ program: mongod
 name: wiredTigerCacheSizeGB
 directive: option
 optional: true
-args: "float"
+args: "<float>"
 description: |
 
-   {{intro}} maximum size of the internal cache that WiredTiger will
-   use for all data.
+   Defines the maximum size of the internal cache that WiredTiger will
+   use for all data. The memory consumed by an index build (see
+   :parameter:`maxIndexBuildMemoryUsageMegabytes`) is separate from the
+   WiredTiger cache memory.
 
-   .. versionchanged:: 3.4
 
-      Values can range from 256MB to 10TB and can be a float. In
-      addition, the default value has also changed.
+   Starting in MongoDB 3.4, {{role}} values can range from 0.25 GB  to
+   10000 GB and can be a float.
 
    .. include:: /includes/extracts/wt-cache-default-setting.rst
 
@@ -2402,13 +2427,11 @@ description: |
 
    With WiredTiger, MongoDB utilizes both the WiredTiger internal cache
    and the filesystem cache.
-
+   
    .. include:: /includes/extracts/wt-filesystem-cache.rst
 
 post: |
   .. include:: /includes/extracts/wt-cache-additional-constraints-mongod-cmdline-option.rst
-replacement:
-  intro: "Defines the"
 ---
 program: mongod
 name: wiredTigerJournalCompressor
@@ -2420,7 +2443,7 @@ description: |
 
   .. versionadded:: 3.0.0
 
-  {{intro}} type of compression to use to compress WiredTiger
+  Specifies the type of compression to use to compress WiredTiger
   journal data.
 
   Available compressors are:
@@ -2430,8 +2453,9 @@ description: |
   - :term:`snappy`
 
   - :term:`zlib`
-replacement:
-  intro: "Specifies the"
+  
+  - :term:`zstd` (Available starting in MongoDB 4.2)
+
 ---
 program: mongod
 name: wiredTigerCollectionBlockCompressor
@@ -2443,9 +2467,8 @@ description: |
 
   .. versionadded:: 3.0.0
 
-  {{intro}} default type of compression to use to compress collection
-  data. You can override this on a per-collection basis when creating
-  collections.
+  Specifies the default compression for collection data. You can
+  override this on a per-collection basis when creating collections.
 
   Available compressors are:
 
@@ -2455,13 +2478,13 @@ description: |
 
   - :term:`zlib`
 
+  - :term:`zstd` (Available starting MongoDB 4.2)
+
   {{role}} affects all collections created. If you change
   the value of {{role}} on an existing MongoDB deployment, all new
   collections will use the specified compressor. Existing collections
   will continue to use the compressor specified when they were
   created, or the default compressor at that time.
-replacement:
-  intro: "Specifies the"
 ---
 program: mongod
 name: wiredTigerIndexPrefixCompression
@@ -3375,7 +3398,7 @@ optional: true
 program: mongod
 name: networkMessageCompressors
 args: <string>
-default: snappy,zlib
+default: snappy,zstd,zlib
 directive: option
 description: |
 
@@ -3394,14 +3417,16 @@ description: |
 
    - :term:`snappy`
 
-   - :term:`zlib` (Available in MongoDB 3.6 or greater)
+   - :term:`zlib` (Available starting in MongoDB 3.6)
+
+   - :term:`zstd` (Available  starting in MongoDB 4.2)
 
    **In versions 3.6 and 4.0**, :binary:`~bin.mongod` and
    :binary:`~bin.mongos` enable network compression by default with
    ``snappy`` as the compressor.
    
    **Starting in version 4.2**, :binary:`~bin.mongod` and
-   :binary:`~bin.mongos` instances default to both ``snappy,zlib``
+   :binary:`~bin.mongos` instances default to both ``snappy,zstd,zlib``
    compressors, in that order.
 
    To disable network compression, set the value to ``disabled``.

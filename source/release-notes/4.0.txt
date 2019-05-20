@@ -19,6 +19,24 @@ Release Notes for MongoDB 4.0
 Minor Releases
 --------------
 
+.. _4.0.9-release-notes:
+
+4.0.9 - Apr 16, 2019
+~~~~~~~~~~~~~~~~~~~~
+
+Issues fixed:
+
+- :issue:`SERVER-38949`: Incorrect index bounds for {$ne: ["String"]} query
+- :issue:`SERVER-38984`: Attach IDs to users
+- :issue:`SERVER-39178`: Negotiate SCRAM mechanism in MongoURI::connect()
+- :issue:`SERVER-40333`: Only clone collection options once for each shard on shard collection
+
+- `All JIRA issues closed in 4.0.9
+  <https://jira.mongodb.org/issues/?jql=project%20in%20(SERVER%2CTOOLS%2CWT)%20AND%20resolution%3D%27Fixed%27%20and%20fixversion%3D%274.0.9%27>`_
+
+- :ref:`4.0.9-changelog`
+
+
 .. _4.0.8-release-notes:
 
 4.0.8 - Mar 29, 2019
@@ -954,6 +972,36 @@ Platform Support
 Refer to :ref:`prod-notes-supported-platforms` for the full platform
 support matrix.
 
+MongoDB Tools
+-------------
+
+:toolcommand:`mongoreplay play <play>`  supports a new ``MONGOREPLAY_HOST``
+environment variable that specifies the MongoDB connection string when
+running ``mongoreplay play``. The new environment vairable can be used
+instead of the command-line :option:`--host <mongoreplay play --host>`
+option.
+ 
+For example, to play back a recording to a :binary:`~bin.mongod`
+instance running with authentication ``mongodb1.example.net:27017``, you can specify the connection string in:
+
+-  The ``MONGOREPLAY_HOST`` environment variable:
+
+   .. code-block:: sh
+
+      export MONGOREPLAY_HOST="mongodb://myUserName:s0meD1fficultPassw0rd@mongodb1.example.net:27017/?authSource=admin"
+      mongoreplay play -p /some/path/to/my/recording.bson
+
+-  The :option:`--host <mongoreplay play --host>` command-line option
+
+   .. code-block:: sh
+
+      mongoreplay play -p /some/path/to/my/recording.bson --host "mongodb://myUserName:s0meD1fficultPassw0rd@mongodb1.example.net:27017/?authSource=admin"
+
+If :option:`--host <mongoreplay play --host>` command-line option is
+specified, the :option:`--host <mongoreplay play --host>` value overrides
+the environment variable.
+
+
 General Improvements
 --------------------
 
@@ -1028,7 +1076,7 @@ Network Layer Improvements
 - For the parameter :parameter:`taskExecutorPoolSize`, change default
   value to ``1``.
 
-- Add new parameter :parameter:`AsyncRequestsSenderUseBaton` to enable
+- Add new parameter :v4.0:`AsyncRequestsSenderUseBaton </reference/parameters/#param.AsyncRequestsSenderUseBaton>` to enable
   performance optimization on Linux for scatter/gather operations on
   :binary:`~bin.mongos` when using a single :parameter:`Task Executor
   connection pool <taskExecutorPoolSize>`.
@@ -1174,6 +1222,9 @@ Known Issues in 4.0.1
 
 Known Issues in 4.0.0
 ---------------------
+
+- :issue:`TOOLS-1952`:
+    .. include:: /includes/extracts/4.0-errata-tools-1952.rst
 
 - :issue:`TOOLS-2058`:
      .. include:: /includes/extracts/4.0-errata-tools-2058.rst

@@ -60,6 +60,8 @@ Roles
 
 .. include:: /includes/fact-roles-array-contents.rst
 
+.. _method-createUser-authentication-restrictions:
+
 Authentication Restrictions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -70,6 +72,12 @@ command.
 
 Behavior
 --------
+
+User Id
+~~~~~~~
+
+Starting in version 4.0.9, MongoDB automatically assigns a unique
+``userId`` to the user upon creation.
 
 Replica set
 ~~~~~~~~~~~

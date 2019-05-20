@@ -60,8 +60,8 @@ a list of recommended actions to protect a MongoDB deployment.
    :hidden:
 
    /administration/security-checklist
-   /core/authentication
    /tutorial/enable-authentication
+   /core/authentication
    /core/authorization
    /core/security-transport-encryption
    /core/security-encryption-at-rest
